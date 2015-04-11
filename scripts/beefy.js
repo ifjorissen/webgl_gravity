@@ -1,5 +1,5 @@
 var beefy = require('beefy')
-  , http = require('http')
+var http = require('http')
 
 http.createServer(beefy({
     entries: ['index.js']
@@ -11,6 +11,6 @@ http.createServer(beefy({
 })).listen(9966)
 
 function on404(req, resp) {
-  resp.writeHead(404, {})
-  resp.end('sorry folks!')
+  req.writeHead(404, {})
+  req.end('sorry folks!')
 }
