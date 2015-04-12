@@ -80,6 +80,8 @@ shell.on("gl-init", function() {
 
   var color_attribute = gl.getAttribLocation(shader, "a_color")
   var position_attribute = gl.getAttribLocation(shader, "a_position")
+  var velocity_uniform = gl.getAttribLocation(shader, "u_velocity")
+  shell.movementLoc = velocity_uniform
 
   gl.enableVertexAttribArray(color_attribute)
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
@@ -101,7 +103,11 @@ shell.on("gl-init", function() {
 shell.on("gl-render", function(t) {
   console.log("render called")
   var gl = shell.gl
-  gl.clearColor(0.0, 0.0, 0.0, 1.0); 
+  var movementLoc = shell.movementLoc
+  movement = [0., -.001, 0.]
+  gl.uniform3fv(movementLoc, movement)
+  gl.clearColor(0.0, 0.0, 0.0, 1.0)
+
   //Draw the points
   gl.drawArrays(gl.POINTS, 0, 3)
 })
