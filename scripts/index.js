@@ -1,5 +1,5 @@
 //Initialize shell
-var shell = require("gl-now")()
+var shell = require("gl-now")({tickRate:1000})
 var fs = require("fs")
 
 var VERT_SRC = fs.readFileSync(__dirname +  '/shaders/vert_shader.glsl', 'utf8')
@@ -26,31 +26,82 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  // Create buffer
-  var colors = [0,1.,0, 1.,0,1., 0,0,1.]
-  colorBuf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
+  var colorArray = [
+    [1,1,1],
+    [0.3451, 1.0, 0.5450],
+    [1.0, 0.4313, 0.3411],
+    [1.0, 0.8862, 0.3725],
+    [0.3804, 0.7647, 1.0]
+  ]
 
-  var positions = [.5, .5, 0., .75, 0, 0., 0., 0., 0.]
-  vertBuf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
+  var numPoints = 3
+  var PitemSize = 3
+  var CitemSize = 3
+
+  var vertexPositions = new Float32Array(numPoints*PitemSize)
+  var vertexColors    = new Float32Array(numPoints*CitemSize)
+
+  //   var vertexPBuffer = createBuffer(gl, vertexPositions)
+  //   var vertexCBuffer = createBuffer(gl, vertexColors)
+
+  // refine this or scrap it, assigns random colors and positions to the bodies
+  var cPointer = 0
+  var pPointer = 0
+  for(var i=0; i<=numPoints; ++i) {
+    var c = colorArray[(Math.random()*colorArray.length)|0]
+    var p = [.8-Math.random()*1.6, .8-Math.random()*1.6, .8-Math.random()*1.6]
+    for(var j=0; j<=CitemSize; ++j) {
+      vertexColors[cPointer] = c[j]
+      cPointer += 1
+    }
+    for(var j=0; j<PitemSize; ++j){
+      vertexPositions[pPointer] =p[j]
+      pPointer += 1
+    }
+  }
+
+//   var vertexArray = createVAO(gl, [
+//     {
+//       "buffer": vertexPBuffer,
+//       "size": PitemSize
+//     },
+//     {
+//       "buffer": vertexCBuffer,
+//       "size": CitemSize
+//     }
+//   ])
+
+  // Create buffer
+  // var colors = [.1,0.,1, 1.,0,1., 0.,1.,1.]
+  // var positions = [.5, .5, 0., .75, 0, 0., 0., 0., 0.]
+
+  var colorBuf = gl.createBuffer()
+  var vertBuf = gl.createBuffer()
 
   var color_attribute = gl.getAttribLocation(shader, "a_color")
+  var position_attribute = gl.getAttribLocation(shader, "a_position")
+
   gl.enableVertexAttribArray(color_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
   gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
 
-  //Set up attribute pointer
-  var position_attribute = gl.getAttribLocation(shader, "a_position")
   gl.enableVertexAttribArray(position_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
   gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
 
 })
 
+// shell.on("tick", function(){
+//   console.log("tick")
+//   shell.gl.
+// })
+
 shell.on("gl-render", function(t) {
+  console.log("render called")
   var gl = shell.gl
-  // gl.clearColor(0.0, 0.0, 0.0, 1.0); 
+  gl.clearColor(0.0, 0.0, 0.0, 1.0); 
   //Draw the points
   gl.drawArrays(gl.POINTS, 0, 3)
 })

@@ -11,6 +11,6 @@ http.createServer(beefy({
 })).listen(9966)
 
 function on404(req, resp) {
-  req.writeHead(404, {})
-  req.end('sorry folks!')
+  resp.writeHead(404, {})
+  resp.end('sorry folks!')
 }
