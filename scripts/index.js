@@ -5,8 +5,12 @@ var fs = require("fs")
 var VERT_SRC = fs.readFileSync(__dirname +  '/shaders/vert_shader.glsl', 'utf8')
 var FRAG_SRC = fs.readFileSync(__dirname + '/shaders/frag_shader.glsl', 'utf8')
 
+var shader
+var vertexPositions
+var vertexColors
 
 shell.on("gl-init", function() {
+  console.log("gl-init called")
   var gl = shell.gl
 
   //Create fragment shader
@@ -20,7 +24,8 @@ shell.on("gl-init", function() {
   gl.compileShader(verts)
 
   //Link
-  var shader = gl.createProgram()
+  shader = gl.createProgram()
+  shell.shader = shader
   gl.attachShader(shader, frags)
   gl.attachShader(shader, verts)
   gl.linkProgram(shader)
@@ -38,8 +43,8 @@ shell.on("gl-init", function() {
   var PitemSize = 3
   var CitemSize = 3
 
-  var vertexPositions = new Float32Array(numPoints*PitemSize)
-  var vertexColors    = new Float32Array(numPoints*CitemSize)
+  vertexPositions = new Float32Array(numPoints*PitemSize)
+  vertexColors    = new Float32Array(numPoints*CitemSize)
 
   //   var vertexPBuffer = createBuffer(gl, vertexPositions)
   //   var vertexCBuffer = createBuffer(gl, vertexColors)
@@ -80,7 +85,7 @@ shell.on("gl-init", function() {
 
   var color_attribute = gl.getAttribLocation(shader, "a_color")
   var position_attribute = gl.getAttribLocation(shader, "a_position")
-  var velocity_uniform = gl.getAttribLocation(shader, "u_velocity")
+  var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
   shell.movementLoc = velocity_uniform
 
   gl.enableVertexAttribArray(color_attribute)
@@ -95,17 +100,50 @@ shell.on("gl-init", function() {
 
 })
 
-// shell.on("tick", function(){
-//   console.log("tick")
-//   shell.gl.
-// })
+shell.on("tick", function(){
+  console.log("tick")
+  var gl = shell.gl
+  movement = [0., -.1, 0.]
+  // movement[1] += -.1
+  gl.uniform3fv(gl.getUniformLocation(shader, "u_velocity"), movement)
+
+  var position_attribute = gl.getAttribLocation(shader, "a_position")
+  var color_attribute = gl.getAttribLocation(shader, "a_color")
+  var vertBuf = gl.createBuffer()
+  var colorBuf = gl.createBuffer()
+  for(var i=0; i<=3; ++i) {
+    vertexPositions[i*3 + 1] += movement
+  }
+  gl.enableVertexAttribArray(position_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+  gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
+
+  gl.enableVertexAttribArray(color_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
+  gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
+})
+
+// var tick = function(){
+//   console.log("???tick")
+
+//   var gl = shell.gl
+//   movement = [0., -.1, 0.]
+//   movement[1] += -.1
+//   gl.uniform3fv(gl.getUniformLocation(shader, "u_velocity"), movement)
+
+//   var position_attribute = gl.getAttribLocation(shader, "a_position")
+
+//   gl.enableVertexAttribArray(position_attribute)
+//   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+//   // gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+//   gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
+// }
 
 shell.on("gl-render", function(t) {
   console.log("render called")
   var gl = shell.gl
-  var movementLoc = shell.movementLoc
-  movement = [0., -.001, 0.]
-  gl.uniform3fv(movementLoc, movement)
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
 
   //Draw the points
