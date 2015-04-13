@@ -107,22 +107,22 @@ shell.on("tick", function(){
   // movement[1] += -.1
   gl.uniform3fv(gl.getUniformLocation(shader, "u_velocity"), movement)
 
-  var position_attribute = gl.getAttribLocation(shader, "a_position")
-  var color_attribute = gl.getAttribLocation(shader, "a_color")
-  var vertBuf = gl.createBuffer()
-  var colorBuf = gl.createBuffer()
-  for(var i=0; i<=3; ++i) {
-    vertexPositions[i*3 + 1] += movement
-  }
-  gl.enableVertexAttribArray(position_attribute)
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
-  gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
+  // var position_attribute = gl.getAttribLocation(shader, "a_position")
+  // var color_attribute = gl.getAttribLocation(shader, "a_color")
+  // var vertBuf = gl.createBuffer()
+  // var colorBuf = gl.createBuffer()
+  // for(var i=0; i<=3; ++i) {
+  //   vertexPositions[i*3 + 1] += movement
+  // }
+  // gl.enableVertexAttribArray(position_attribute)
+  // gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+  // gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+  // gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
 
-  gl.enableVertexAttribArray(color_attribute)
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
-  gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
+  // gl.enableVertexAttribArray(color_attribute)
+  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
+  // gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
+  // gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
 })
 
 // var tick = function(){
