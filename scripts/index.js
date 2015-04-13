@@ -123,6 +123,7 @@ shell.on("tick", function(){
   // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
   // gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
   // gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
+  // gl.drawArrays(gl.POINTS, 0, 3)
 })
 
 // var tick = function(){
@@ -145,9 +146,29 @@ shell.on("gl-render", function(t) {
   console.log("render called")
   var gl = shell.gl
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
+  movement = [0., -.01, 0.]
+  // movement[1] += -.1
+  gl.uniform3fv(gl.getUniformLocation(shader, "u_velocity"), movement)
+  var position_attribute = gl.getAttribLocation(shader, "a_position")
+  var color_attribute = gl.getAttribLocation(shader, "a_color")
+  var vertBuf = gl.createBuffer()
+  var colorBuf = gl.createBuffer()
+  for(var i=0; i<3; ++i) {
+    vertexPositions[i*3 + 1] += movement[1]
+  }
+  gl.enableVertexAttribArray(position_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+  gl.vertexAttribPointer(position_attribute, 3, gl.FLOAT, false, 0, 0)
 
+  gl.enableVertexAttribArray(color_attribute)
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
+  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
+  gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
   //Draw the points
   gl.drawArrays(gl.POINTS, 0, 3)
+  gl.disableVertexAttribArray(vertBuf)
+  gl.disableVertexAttribArray(colorBuf)
 })
 
 shell.on("gl-error", function(e) {
