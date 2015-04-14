@@ -40,7 +40,7 @@ System.prototype = {
       var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
       var v = [.1-Math.random()*.2, .1-Math.random()*.2]
       var m = Math.random()*50
-      this.bodies.push(new Body(p, v, c, m))
+      this.bodies.push(new Body(p, v, c, m, i))
     }
     this.PitemSize = 2
     this.CitemSize = 3
@@ -64,18 +64,28 @@ System.prototype = {
     this.vertexColors    = vc
 
   },
-  tick: function(){    // updatePositions()
-
-  },
+  gravity: function(){
+    var gvec = new Array(this.numBodies)
+    for(var i=0; i<this.numBodies; ++i){
+      gvec[i] = 0
+      for(var j=0; j<this.numBodies; ++j){
+        if j(!= i){
+          var dist = (this.bodies[j].p - this.bodies[i].p)
+          var dir = dist / (Math.sqrt(dist[0]*dist[0] + dist[1]*dist[1]))
+          gvec[i] += (this.bodies[j].mass/dist)*dir
+        }
+      }
+    }
+    return gvec
+  }
   updateBuffers: function(){
     console.log("updateBuffers called")
     var gl = shell.gl
-    // avec = this.gravity()
-
+    var gvec = this.gravity()
     vp = new Float32Array(this.numBodies*this.PitemSize)
     var pPointer = 0;
     for(var i=0; i<this.numBodies; ++i){
-      this.bodies[i].update()
+      this.bodies[i].update(gvec[i])
       for(var j=0; j<this.PitemSize; ++j){
         vp[pPointer] = this.bodies[i].p[j]
         pPointer += 1
@@ -85,20 +95,24 @@ System.prototype = {
   }
 }
 
-Body = function(p, v, c, mass){
-  this.init(p, v, c, mass)
+Body = function(p, v, c, mass, i){
+  this.init(p, v, c, mass, i)
 }
 
 Body.prototype = {
-  init: function(p, v, c, mass){
+  init: function(p, v, c, mass, i){
     this.p = p
     this.v = v
     this.c = c
     this.mass = mass || 50
+    this.id = i
+    this.h = 100
   },
-  update: function(){
-    this.p[0] += this.v[0]/this.mass
-    this.p[1] += this.v[1]/this.mass
+  update: function(gvec){
+    this.p[0] += this.v[0]/h
+    this.p[1] += this.v[1]/h
+    this.v[0] += this.gvec[0]/h
+    this.v[1] += this.gvec[1]/h
   }
 }
 
@@ -126,7 +140,7 @@ shell.on("gl-init", function() {
 
   sim = new System(3)
   sim.init()
-  sim.updateBuffers()
+  // sim.updateBuffers()
 })
 
 
