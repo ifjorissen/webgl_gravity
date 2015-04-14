@@ -4,7 +4,7 @@ precision highp int;
 attribute vec2 a_position;
 attribute vec3 a_color;
 
-uniform vec3 u_velocity;
+// uniform vec3 u_velocity;
 varying vec3 fragColor;
 
 void main() {

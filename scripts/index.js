@@ -77,14 +77,14 @@ System.prototype = {
     // var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
     // shell.movementLoc = velocity_uniform
 
-    gl.enableVertexAttribArray(color_attribute)
+    gl.enableVertexAttribArray(this.color_attribute)
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-    gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertexColors, gl.STATIC_DRAW)
     gl.vertexAttribPointer(this.color_attribute, 3, gl.FLOAT, false, 0, 0)
 
-    gl.enableVertexAttribArray(position_attribute)
+    gl.enableVertexAttribArray(this.position_attribute)
     gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-    gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertexPositions, gl.STREAM_DRAW)
     gl.vertexAttribPointer(this.position_attribute, 2, gl.FLOAT, false, 0, 0)
     gl.drawArrays(gl.POINTS, 0, 3)
     gl.disableVertexAttribArray(vertBuf)
@@ -145,59 +145,59 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  // shell.sim = new System(3)
-  // shell.sim.init()
-  // shell.sim.updateBuffers()
+  shell.sim = new System(3)
+  shell.sim.init()
+  shell.sim.updateBuffers()
   var colorArray = [
-    [1,1,1],
-    [0.3451, 1.0, 0.5450],
-    [1.0, 0.4313, 0.3411],
-    [1.0, 0.8862, 0.3725],
-    [0.3804, 0.7647, 1.0]
-  ]
+  //   [1,1,1],
+  //   [0.3451, 1.0, 0.5450],
+  //   [1.0, 0.4313, 0.3411],
+  //   [1.0, 0.8862, 0.3725],
+  //   [0.3804, 0.7647, 1.0]
+  // ]
 
-  var numPoints = 3
-  var PitemSize = 2
-  var CitemSize = 3
+  // var numPoints = 3
+  // var PitemSize = 2
+  // var CitemSize = 3
 
-  vertexPositions = new Float32Array(numPoints*PitemSize)
-  vertexColors    = new Float32Array(numPoints*CitemSize)
+  // vertexPositions = new Float32Array(numPoints*PitemSize)
+  // vertexColors    = new Float32Array(numPoints*CitemSize)
 
     // var vertexPBuffer = createBuffer(gl, vertexPositions)
     // var vertexCBuffer = createBuffer(gl, vertexColors)
 
-  var cPointer = 0
-  var pPointer = 0
-  for(var i=0; i<=numPoints; ++i) {
-    var c = colorArray[(Math.random()*colorArray.length)|0]
-    var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
-    for(var j=0; j<=CitemSize; ++j) {
-      vertexColors[cPointer] = c[j]
-      cPointer += 1
-    }
-    for(var j=0; j<PitemSize; ++j){
-      vertexPositions[pPointer] =p[j]
-      pPointer += 1
-    }
-  }
+  // var cPointer = 0
+  // var pPointer = 0
+  // for(var i=0; i<=numPoints; ++i) {
+  //   var c = colorArray[(Math.random()*colorArray.length)|0]
+  //   var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
+  //   for(var j=0; j<=CitemSize; ++j) {
+  //     vertexColors[cPointer] = c[j]
+  //     cPointer += 1
+  //   }
+  //   for(var j=0; j<PitemSize; ++j){
+  //     vertexPositions[pPointer] =p[j]
+  //     pPointer += 1
+  //   }
+  // }
 
-  var colorBuf = gl.createBuffer()
-  var vertBuf = gl.createBuffer()
+  // var colorBuf = gl.createBuffer()
+  // var vertBuf = gl.createBuffer()
 
-  var color_attribute = gl.getAttribLocation(shader, "a_color")
-  var position_attribute = gl.getAttribLocation(shader, "a_position")
-  var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
-  shell.movementLoc = velocity_uniform
+  // var color_attribute = gl.getAttribLocation(shader, "a_color")
+  // var position_attribute = gl.getAttribLocation(shader, "a_position")
+  // var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
+  // shell.movementLoc = velocity_uniform
 
-  gl.enableVertexAttribArray(color_attribute)
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
-  gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
+  // gl.enableVertexAttribArray(color_attribute)
+  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
+  // gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
+  // gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
 
-  gl.enableVertexAttribArray(position_attribute)
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
-  gl.vertexAttribPointer(position_attribute, 2, gl.FLOAT, false, 0, 0)
+  // gl.enableVertexAttribArray(position_attribute)
+  // gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
+  // gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
+  // gl.vertexAttribPointer(position_attribute, 2, gl.FLOAT, false, 0, 0)
 })
 
 
