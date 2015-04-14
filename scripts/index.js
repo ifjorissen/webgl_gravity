@@ -1,5 +1,5 @@
 //Initialize shell
-var shell = require("gl-now")({tickRate:1000, frameTime:0.0})
+var shell = require("gl-now")({tickRate:1000, frameTime:.99, frameSkip:10000})
 var fs = require("fs")
 
 var VERT_SRC = fs.readFileSync(__dirname +  '/shaders/vert_shader.glsl', 'utf8')
@@ -10,13 +10,7 @@ var vertexPositions
 var vertexVelocity
 var vertexAcceleration
 var vertexColors
-
-function updatePositions(){
-  var movement = [0., -.01, 0.]
-  for(var i=0; i<3; ++i) {
-    vertexPositions[i*2 + 1] += movement[1]
-  }
-}
+var sim
 
 System = function (num){
   this.init(num)
@@ -27,101 +21,86 @@ System.prototype = {
     var gl = shell.gl
     this.color_attribute = gl.getAttribLocation(shader, "a_color")
     this.position_attribute = gl.getAttribLocation(shader, "a_position")
-    // this.velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
-    this.numBodies = num || 2
+
+    this.numBodies = parseInt(num) || 3
     this.colors = [
-      [1,1,1],
+      [0,0,0],
       [0.3451, 1.0, 0.5450],
       [1.0, 0.4313, 0.3411],
       [1.0, 0.8862, 0.3725],
+      [1.0, 1.0, 0.0],
+      [0.0, 1.0, 1.0],
+      [1.0, 0.0, 1.0],
       [0.3804, 0.7647, 1.0]
     ]
+
     this.bodies = []
-    for(var i=0; i<=this.numBodies; ++i){
+    for(var i=0; i<this.numBodies; ++i){
       var c = this.colors[(Math.random()*this.colors.length)|0]
       var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
-      this.bodies.push(new Body(p[0], p[1],c, 75))
+      var v = [.1-Math.random()*.2, .1-Math.random()*.2]
+      var m = Math.random()*50
+      this.bodies.push(new Body(p, v, c, m))
     }
-    console.log(this.bodies)
     this.PitemSize = 2
     this.CitemSize = 3
 
-    this.vertexPositions = new Float32Array(this.numBodies*this.PitemSize)
-    this.vertexColors    = new Float32Array(this.numBodies*this.CitemSize)
-    for(var i=0; i<=this.numBodies; ++i){
-      this.vertexPositions.push(this.bodies[i].x)
-      this.vertexPositions.push(this.bodies[i].y)
-      for (var j; j<this.CitemSize; ++j){
-        this.vertexColors.push(this.bodies[i].c[j])
+    var vp = new Float32Array(this.numBodies*this.PitemSize)
+    var vc = new Float32Array(this.numBodies*this.CitemSize)
+
+    var cPointer = 0;
+    var pPointer = 0;
+    for(var i=0; i<this.numBodies; ++i){
+      for (var k=0; k<this.CitemSize; ++k){
+        vc[cPointer] = this.bodies[i].c[k]
+        cPointer += 1
+      }
+      for(var j=0; j<this.PitemSize; ++j){
+        vp[pPointer] = this.bodies[i].p[j]
+        pPointer += 1
       }
     }
+    this.vertexPositions = vp
+    this.vertexColors    = vc
 
   },
-  tick: function(){
-    updatePositions()
+  tick: function(){    // updatePositions()
+
   },
   updateBuffers: function(){
     console.log("updateBuffers called")
     var gl = shell.gl
+    // avec = this.gravity()
 
-    this.vertexPositions = new Float32Array(this.numBodies*this.PitemSize)
-    for(var i=0; i<=this.numBodies; ++i){
-      this.vertexPositions.push(this.bodies[i].x)
-      this.vertexPositions.push(this.bodies[i].y)
+    vp = new Float32Array(this.numBodies*this.PitemSize)
+    var pPointer = 0;
+    for(var i=0; i<this.numBodies; ++i){
+      this.bodies[i].update()
+      for(var j=0; j<this.PitemSize; ++j){
+        vp[pPointer] = this.bodies[i].p[j]
+        pPointer += 1
+      }
     }
-    var colorBuf = gl.createBuffer()
-    var vertBuf = gl.createBuffer()
-
-    // var color_attribute = gl.getAttribLocation(shader, "a_color")
-    // var position_attribute = gl.getAttribLocation(shader, "a_position")
-    // var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
-    // shell.movementLoc = velocity_uniform
-
-    gl.enableVertexAttribArray(this.color_attribute)
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertexColors, gl.STATIC_DRAW)
-    gl.vertexAttribPointer(this.color_attribute, 3, gl.FLOAT, false, 0, 0)
-
-    gl.enableVertexAttribArray(this.position_attribute)
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertexPositions, gl.STREAM_DRAW)
-    gl.vertexAttribPointer(this.position_attribute, 2, gl.FLOAT, false, 0, 0)
-    gl.drawArrays(gl.POINTS, 0, 3)
-    gl.disableVertexAttribArray(vertBuf)
-    gl.disableVertexAttribArray(colorBuf)
+    this.vertexPositions = vp
   }
 }
 
-Body = function(x, y, c, mass){
-  this.init(x,y,c,mass)
+Body = function(p, v, c, mass){
+  this.init(p, v, c, mass)
 }
 
 Body.prototype = {
-  init: function(x,y,c, mass){
-    this.x = x || 0.0
-    this.y = y || 0.0
+  init: function(p, v, c, mass){
+    this.p = p
+    this.v = v
     this.c = c
-    // this.vx = vx || 0.0
-    // this.vy = vy || 0.0
-    // this.ax = ax || 0.0
-    // this.ay = ax || 0.0
     this.mass = mass || 50
+  },
+  update: function(){
+    this.p[0] += this.v[0]/this.mass
+    this.p[1] += this.v[1]/this.mass
   }
-  // tick: function(){
-  //   this.x += this.vx
-  //   this.y += this.vy
-  //   this.vx = 
-  //   this.vy = 
-  //   this.ax = 
-  //   this.ay = 
-  // }
 }
-
-// function bindAttribBuf(data, buffer){
-// }
-// function gravity(){
-
-// }
 
 shell.on("gl-init", function() {
   console.log("gl-init called")
@@ -145,92 +124,32 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  shell.sim = new System(3)
-  shell.sim.init()
-  shell.sim.updateBuffers()
-  var colorArray = [
-  //   [1,1,1],
-  //   [0.3451, 1.0, 0.5450],
-  //   [1.0, 0.4313, 0.3411],
-  //   [1.0, 0.8862, 0.3725],
-  //   [0.3804, 0.7647, 1.0]
-  // ]
-
-  // var numPoints = 3
-  // var PitemSize = 2
-  // var CitemSize = 3
-
-  // vertexPositions = new Float32Array(numPoints*PitemSize)
-  // vertexColors    = new Float32Array(numPoints*CitemSize)
-
-    // var vertexPBuffer = createBuffer(gl, vertexPositions)
-    // var vertexCBuffer = createBuffer(gl, vertexColors)
-
-  // var cPointer = 0
-  // var pPointer = 0
-  // for(var i=0; i<=numPoints; ++i) {
-  //   var c = colorArray[(Math.random()*colorArray.length)|0]
-  //   var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
-  //   for(var j=0; j<=CitemSize; ++j) {
-  //     vertexColors[cPointer] = c[j]
-  //     cPointer += 1
-  //   }
-  //   for(var j=0; j<PitemSize; ++j){
-  //     vertexPositions[pPointer] =p[j]
-  //     pPointer += 1
-  //   }
-  // }
-
-  // var colorBuf = gl.createBuffer()
-  // var vertBuf = gl.createBuffer()
-
-  // var color_attribute = gl.getAttribLocation(shader, "a_color")
-  // var position_attribute = gl.getAttribLocation(shader, "a_position")
-  // var velocity_uniform = gl.getUniformLocation(shader, "u_velocity")
-  // shell.movementLoc = velocity_uniform
-
-  // gl.enableVertexAttribArray(color_attribute)
-  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-  // gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
-  // gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
-
-  // gl.enableVertexAttribArray(position_attribute)
-  // gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-  // gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
-  // gl.vertexAttribPointer(position_attribute, 2, gl.FLOAT, false, 0, 0)
+  sim = new System(3)
+  sim.init()
+  sim.updateBuffers()
 })
 
 
 shell.on("gl-render", function(t) {
-  console.log("render called")
   var gl = shell.gl
-  var position_attribute = gl.getAttribLocation(shader, "a_position")
-  var color_attribute = gl.getAttribLocation(shader, "a_color")
   var vertBuf = gl.createBuffer()
   var colorBuf = gl.createBuffer()
 
-  // gl.uniform3fv(gl.getUniformLocation(shader, "u_velocity"), movement)
-
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
-  // sim.updateBuffers()
-  updatePositions()
-  console.log(shell)
-  shell.paused = true
-  
-  movement = [0., -.01, 0.]
+  sim.updateBuffers()
 
-  gl.enableVertexAttribArray(position_attribute)
+  gl.enableVertexAttribArray(sim.position_attribute)
   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexPositions, gl.STREAM_DRAW)
-  gl.vertexAttribPointer(position_attribute, 2, gl.FLOAT, false, 0, 0)
+  gl.bufferData(gl.ARRAY_BUFFER, sim.vertexPositions, gl.STREAM_DRAW)
+  gl.vertexAttribPointer(sim.position_attribute, sim.PitemSize, gl.FLOAT, false, 0, 0)
 
-  gl.enableVertexAttribArray(color_attribute)
+  gl.enableVertexAttribArray(sim.color_attribute)
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuf)
-  gl.bufferData(gl.ARRAY_BUFFER, vertexColors, gl.STATIC_DRAW)
-  gl.vertexAttribPointer(color_attribute, 3, gl.FLOAT, false, 0, 0)
+  gl.bufferData(gl.ARRAY_BUFFER, sim.vertexColors, gl.STATIC_DRAW)
+  gl.vertexAttribPointer(sim.color_attribute, sim.CitemSize, gl.FLOAT, false, 0, 0)
 
   //Draw the points
-  gl.drawArrays(gl.POINTS, 0, 3)
+  gl.drawArrays(gl.POINTS, 0, sim.numBodies)
   gl.disableVertexAttribArray(vertBuf)
   gl.disableVertexAttribArray(colorBuf)
 })
