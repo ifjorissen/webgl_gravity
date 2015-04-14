@@ -1,27 +1,24 @@
 //Initialize shell
 var shell = require("gl-now")({tickRate:1000, frameTime:.99, frameSkip:10000})
 var fs = require("fs")
-var vec = require("victor")
 
 var VERT_SRC = fs.readFileSync(__dirname +  '/shaders/vert_shader.glsl', 'utf8')
 var FRAG_SRC = fs.readFileSync(__dirname + '/shaders/frag_shader.glsl', 'utf8')
 
-// var shader
-// var vertexPositions
-// var vertexVelocity
-// var vertexAcceleration
-// var vertexColors
+var shader
+var vertexPositions
+var vertexVelocity
+var vertexAcceleration
+var vertexColors
 var sim
-var EPSILON = .000005
 
-System = function (num, orbit){
-  this.init(parseInt(num), orbit)
+System = function (num){
+  this.init(num)
 }
 
 System.prototype = {
-  init: function(num, orbit){
+  init: function(num){
     var gl = shell.gl
-    this.orbit = orbit
     this.color_attribute = gl.getAttribLocation(shader, "a_color")
     this.position_attribute = gl.getAttribLocation(shader, "a_position")
 
@@ -38,22 +35,11 @@ System.prototype = {
     ]
 
     this.bodies = []
-    if (orbit){
-      this.numBodies ++;
-      this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000))
-    }
-
+    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000))
     for(var i=0; i<this.numBodies-1; ++i){
       var c = this.colors[(Math.random()*this.colors.length)|0]
       var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
-      if (orbit){
-        var dist = [(this.bodies[i].p[0] - this.bodies[0].p[0]), (this.bodies[i].p[1] - this.bodies[0].p[1])]
-        var v = [.1-Math.random()*.2, .1-Math.random()*.2]
-        if (dot(v, d)==0)
-      }
-      else{
-        var v = [.1-Math.random()*.2, .1-Math.random()*.2]
-      }
+      var v = [.1-Math.random()*.2, .1-Math.random()*.2]
       var m = Math.random()*5
       this.bodies.push(new Body(p, v, c, m, i))
     }
@@ -91,10 +77,10 @@ System.prototype = {
           var dir = Math.sqrt(dist[0]*dist[0] + dist[1]*dist[1])
           this.gvec[i*this.PitemSize + 0] += this.bodies[j].mass/dist[0]*dir
           this.gvec[i*this.PitemSize + 1] += this.bodies[j].mass/dist[1]*dir
-          // console.log(this.gvec[i*this.PitemSize + 1])
-          // console.log(i*this.PitemSize + 0)
-          // console.log(i*this.PitemSize + 1)
-          // console.log(this.gvec)
+          console.log(this.gvec[i*this.PitemSize + 1])
+          console.log(i*this.PitemSize + 0)
+          console.log(i*this.PitemSize + 1)
+          console.log(this.gvec)
         }
       }
     }
@@ -160,7 +146,7 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  sim = new System(4, true)
+  sim = new System(10)
   sim.init()
   sim.updateBuffers()
 })
