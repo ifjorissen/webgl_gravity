@@ -45,14 +45,13 @@ System.prototype = {
     ]
 
     this.bodies = []
-    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000*numBodies, 0))
-    for(var i=0; i<this.numBodies-1; ++i){
+    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000*this.numBodies, 0))
+    for(var i=1; i<this.numBodies; ++i){
       var c = this.colors[(Math.random()*this.colors.length)|0]
       var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
       var v = [.1-Math.random()*.2, .1-Math.random()*.2]
       var m = Math.random()*5
       this.bodies.push(new Body(p, v, c, m, i))
-      console.log("pinit" + this.bodies[i].p)
     }
      console.log("pinit" + this.bodies[3].p)
     this.PitemSize = 2
@@ -76,10 +75,10 @@ System.prototype = {
 
   },
   gravity: function(){
-    this.gvec = new Array(this.numBodies)
+    var gvec = new Array(this.numBodies)
     for(var i=0; i<this.numBodies; ++i){
       for(var j=0; j<this.numBodies; ++j){
-        this.gvec[i] = [0,0]
+        gvec[i] = [0,0]
         if (j!= i){
           var tbip = copy(this.bodies[i].p)
           var tbjp = copy(this.bodies[j].p)
@@ -90,27 +89,25 @@ System.prototype = {
           norm(dir)
           var agj = copy(dir)
           mult(agj, this.bodies[j].mass/dlen*dlen)
-          add(this.gvec[i], agj)
+          add(gvec[i], agj)
         }
       }
     }
+    return gvec
   },
-  midptUB: function(){
-    eulerUB
-  }
+  midptUP: function(){
+
+  },
   eulerUB: function(){
-    // var gl = shell.gl
-    this.gravity()
+    var gvec = this.gravity()
     var vp = []
-    // var pPointer = 0;
     for(var i=0; i<this.numBodies; ++i){
-      this.bodies[i].update(this.gvec[i])
-      var pos = this.bodies[i].p
+      this.bodies[i].update(gvec[i])
       for(var j=0; j<this.PitemSize; ++j){
         vp.push(this.bodies[i].p[j])
       }
     }
-    this.vertexPositions = vp
+    return vp
   },
   updateBuffers: function(){
     if (this.numMethod == "rk4"){
@@ -123,7 +120,7 @@ System.prototype = {
     }
     else{
       console.log("euler!")
-      return this.eulerUB()
+      this.vertexPositions = this.eulerUB()
     }
   }
 }
@@ -171,7 +168,6 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  // starts a new system with n bodies and a numerical method
   sim = new System(6, "euler")
   sim.updateBuffers()
 })
