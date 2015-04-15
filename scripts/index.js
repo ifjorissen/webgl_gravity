@@ -26,8 +26,9 @@ System = function (num){
 }
 
 System.prototype = {
-  init: function(num){
+  init: function(num, method){
     var gl = shell.gl
+    this.numMethod = method || "euler"
     this.color_attribute = gl.getAttribLocation(shader, "a_color")
     this.position_attribute = gl.getAttribLocation(shader, "a_position")
 
@@ -44,7 +45,7 @@ System.prototype = {
     ]
 
     this.bodies = []
-    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000, 0))
+    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000*numBodies, 0))
     for(var i=0; i<this.numBodies-1; ++i){
       var c = this.colors[(Math.random()*this.colors.length)|0]
       var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
@@ -57,23 +58,15 @@ System.prototype = {
     this.PitemSize = 2
     this.CitemSize = 3
 
-    // var vp = new Float32Array(this.numBodies*this.PitemSize)
-    // var vc = new Float32Array(this.numBodies*this.CitemSize)
     var vp = []
     var vc = []
 
-    var cPointer = 0;
-    var pPointer = 0;
     for(var i=0; i<this.numBodies; ++i){
       var pos = this.bodies[i].p
       for (var k=0; k<this.CitemSize; ++k){
-        // vc[cPointer] = this.bodies[i].c[k]
-        // cPointer += 1
         vc.push(this.bodies[i].c[k])
       }
       for(var j=0; j<this.PitemSize; ++j){
-        // vp[pPointer] = pos[j]
-        // pPointer += 1
         vp.push(this.bodies[i].p[j])
       }
     }
@@ -83,7 +76,6 @@ System.prototype = {
 
   },
   gravity: function(){
-    console.log("gravity!")
     this.gvec = new Array(this.numBodies)
     for(var i=0; i<this.numBodies; ++i){
       for(var j=0; j<this.numBodies; ++j){
@@ -99,30 +91,40 @@ System.prototype = {
           var agj = copy(dir)
           mult(agj, this.bodies[j].mass/dlen*dlen)
           add(this.gvec[i], agj)
-          console.log("p for j" + this.bodies[j].p)
-          console.log("p for i" + this.bodies[i].p)
         }
       }
     }
-    console.log(this.gvec)
   },
-  updateBuffers: function(){
-    console.log("updateBuffers called")
-    var gl = shell.gl
+  midptUB: function(){
+    eulerUB
+  }
+  eulerUB: function(){
+    // var gl = shell.gl
     this.gravity()
-    // vp = new Float32Array(this.numBodies*this.PitemSize)
     var vp = []
-    var pPointer = 0;
+    // var pPointer = 0;
     for(var i=0; i<this.numBodies; ++i){
       this.bodies[i].update(this.gvec[i])
       var pos = this.bodies[i].p
       for(var j=0; j<this.PitemSize; ++j){
-        // vp[pPointer] = pos[j]
-        // pPointer += 1
         vp.push(this.bodies[i].p[j])
       }
     }
     this.vertexPositions = vp
+  },
+  updateBuffers: function(){
+    if (this.numMethod == "rk4"){
+      console.log("rk4!")
+      return this.rk4UB()
+    }
+    else if (this.numMethod == "midpoint"){
+      console.log("midpoint!")
+      return this.midptUB()
+    }
+    else{
+      console.log("euler!")
+      return this.eulerUB()
+    }
   }
 }
 
@@ -169,19 +171,21 @@ shell.on("gl-init", function() {
   gl.linkProgram(shader)
   gl.useProgram(shader)
 
-  sim = new System(6)
+  // starts a new system with n bodies and a numerical method
+  sim = new System(6, "euler")
   sim.updateBuffers()
 })
 
 
 shell.on("gl-render", function(t) {
+  //update the positions, accelerations & velocities of simulation bodies
+  sim.updateBuffers()
+
+  //update gl arrays
   var gl = shell.gl
   var vertBuf = gl.createBuffer()
   var colorBuf = gl.createBuffer()
-
   gl.clearColor(0.0, 0.0, 0.0, 1.0)
-  sim.updateBuffers()
-
   gl.enableVertexAttribArray(sim.position_attribute)
   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuf)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sim.vertexPositions), gl.STREAM_DRAW)
