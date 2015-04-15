@@ -28,7 +28,7 @@ System = function (num){
 System.prototype = {
   init: function(num, method){
     var gl = shell.gl
-    this.h = 50
+    this.h = 100
     this.numMethod = method || "euler"
     this.color_attribute = gl.getAttribLocation(shader, "a_color")
     this.position_attribute = gl.getAttribLocation(shader, "a_position")
@@ -54,6 +54,7 @@ System.prototype = {
       var m = Math.random()*5
       this.bodies.push(new Body(p, v, c, m, i))
     }
+     console.log("pinit" + this.bodies[3].p)
     this.PitemSize = 2
     this.CitemSize = 3
 
@@ -98,16 +99,15 @@ System.prototype = {
   midptUP: function(){
 
   },
-  eulerUB: function(set){
+  eulerUB: function(){
     var gvec = this.gravity()
     var vp = []
     for(var i=0; i<this.numBodies; ++i){
-      var tb = this.bodies[i].update(gvec[i], this.h)
+      var data = this.bodies[i].update(gvec[i], this.h)
+      console.log(data)
+      this.bodies[i].set(data[0], data[1])
       for(var j=0; j<this.PitemSize; ++j){
-        vp.push(tb[0][j])
-      }
-      if (set){
-        this.bodies[i].set(tb[0], tb[1])
+        vp.push(this.bodies[i].p[j])
       }
     }
     return vp
@@ -122,8 +122,8 @@ System.prototype = {
       return this.midptUB()
     }
     else{
-      // console.log("euler!")
-      this.vertexPositions = this.eulerUB(true)
+      console.log("euler!")
+      this.vertexPositions = this.eulerUB()
     }
   }
 }
@@ -137,26 +137,27 @@ Body.prototype = {
     this.p = p
     this.v = v
     this.c = c
-    // this.a = 0.0
     this.mass = mass || 50
     this.id = i
+    // this.h = 100
   },
   update: function(gvec, h){
     var data = []
-    var vtmp = copy(this.v)
     var ptmp = copy(this.p)
+    var vtmp = copy(this.v)
+    var vtmp2 = copy(vtmp)
     var accg = copy(gvec)
-    add(ptmp, div(vtmp, h))
+    add(ptmp, div(vtmp2, h))
     add(vtmp, div(accg, h))
     data.push(ptmp)
     data.push(vtmp)
+    console.log(ptmp)
+    console.log(vtmp)
     return data
   },
-  //set the new p, v values
   set: function(p, v){
     this.p = p
     this.v = v
-    // this.a = a || this.a
   }
 }
 
