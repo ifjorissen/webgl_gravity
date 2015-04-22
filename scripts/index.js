@@ -28,7 +28,7 @@ System = function (num){
 System.prototype = {
   init: function(num, method){
     var gl = shell.gl
-    this.h = 100
+    this.h = 1000
     this.numMethod = method || "euler"
     this.color_attribute = gl.getAttribLocation(shader, "a_color")
     this.position_attribute = gl.getAttribLocation(shader, "a_position")
@@ -46,15 +46,19 @@ System.prototype = {
     ]
 
     this.bodies = []
-    this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000*this.numBodies, 0))
-    for(var i=1; i<this.numBodies; ++i){
-      var c = this.colors[(Math.random()*this.colors.length)|0]
-      var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
-      var v = [.1-Math.random()*.2, .1-Math.random()*.2]
-      var m = Math.random()*5
-      this.bodies.push(new Body(p, v, c, m, i))
+    //this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 1000, 0))
+    for(var i=0; i<this.numBodies; ++i){
+    	if (i ==0){
+    		this.bodies.push(new Body([0.0, 0.0], [0.0,0.0], this.colors[0], 10*this.numBodies, 0))
+    	}
+    	else{
+    		var c = this.colors[(Math.random()*this.colors.length)|0]
+      	var p = [.8-Math.random()*1.6, .8-Math.random()*1.6]
+      	var v = [.1-Math.random()*.2, .1-Math.random()*.2]
+      	var m = Math.random()*this.numBodies
+      	this.bodies.push(new Body(p, v, c, m, i))
+    	}
     }
-     console.log("pinit" + this.bodies[3].p)
     this.PitemSize = 2
     this.CitemSize = 3
 
@@ -78,8 +82,8 @@ System.prototype = {
   gravity: function(){
     var gvec = new Array(this.numBodies)
     for(var i=0; i<this.numBodies; ++i){
+    	gvec[i] = [0,0]
       for(var j=0; j<this.numBodies; ++j){
-        gvec[i] = [0,0]
         if (j!= i){
           var tbip = copy(this.bodies[i].p)
           var tbjp = copy(this.bodies[j].p)
@@ -104,8 +108,9 @@ System.prototype = {
     var vp = []
     for(var i=0; i<this.numBodies; ++i){
       var data = this.bodies[i].update(gvec[i], this.h)
-      console.log(data)
-      this.bodies[i].set(data[0], data[1])
+      if (this.bodies[i].id != 0){
+      	this.bodies[i].set(data[0], data[1])
+    }
       for(var j=0; j<this.PitemSize; ++j){
         vp.push(this.bodies[i].p[j])
       }
